@@ -1,8 +1,6 @@
 # NorthQuest
 
-<p>
-  <img src="public/branding/indiaskills-logos.png" alt="NSDC · Skill India · IndiaSkills" height="70" />
-</p>
+<img src="public/branding/indiaskills-logos.png" alt="NSDC · Skill India · IndiaSkills" width="100%" />
 
 ![IndiaSkills](https://img.shields.io/badge/IndiaSkills-2026-orange?style=flat-square) ![Web Technologies](https://img.shields.io/badge/Web%20Technologies-Team%20Round-blue?style=flat-square) ![Team](https://img.shields.io/badge/Team-Codebreakers-black?style=flat-square)
 
