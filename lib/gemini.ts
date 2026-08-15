@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { requireEnv } from "@/lib/env";
 
 function modelName() {
-  return process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  return process.env.GROQ_MODEL || "llama-3.1-70b-versatile";
 }
 
 export class GeminiQuotaError extends Error {
@@ -50,70 +50,45 @@ export async function generateJson<T>(args: {
   user: string;
   schemaHint: string;
 }): Promise<T> {
-  const apiKey = requireEnv("GEMINI_API_KEY");
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: modelName(),
-    generationConfig: {
-      temperature: 0.6,
-      responseMimeType: "application/json",
-    },
-  });
-
-  const prompt = [
-    `SYSTEM:\n${args.system}`,
-    `\nUSER:\n${args.user}`,
-    `\nOUTPUT JSON SCHEMA (hint):\n${args.schemaHint}`,
-  ].join("\n");
+  const apiKey = requireEnv("GROQ_API_KEY");
+  const client = new Groq({ apiKey });
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    return JSON.parse(text) as T;
+    const completion = await client.chat.completions.create({
+      model: modelName(),
+      temperature: 0.6,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: args.system },
+        {
+          role: "user",
+          content: `${args.user}\n\nReturn a JSON object with this shape (schema hint, not strict):\n${args.schemaHint}`,
+        },
+      ],
+    });
+    const content = completion.choices[0]?.message?.content;
+    if (!content) throw new Error("Empty Groq JSON response");
+    return JSON.parse(content) as T;
   } catch (err) {
-    if (isQuota429(err)) {
-      const retry = parseRetryAfterSeconds(err);
-      // One short retry helps for per-minute limits.
-      if (retry && retry > 0 && retry <= 30) {
-        await sleep(retry * 1000);
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        return JSON.parse(text) as T;
-      }
-      throw new GeminiQuotaError(
-        "Gemini quota exceeded. Please try again shortly or update your API quota/billing.",
-        retry,
-      );
-    }
     throw err;
   }
 }
 
 export async function generateText(args: { system: string; user: string }) {
-  const apiKey = requireEnv("GEMINI_API_KEY");
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: modelName(),
-    generationConfig: { temperature: 0.7 },
-  });
-
-  const prompt = [`SYSTEM:\n${args.system}`, `\nUSER:\n${args.user}`].join("\n");
+  const apiKey = requireEnv("GROQ_API_KEY");
+  const client = new Groq({ apiKey });
   try {
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    const completion = await client.chat.completions.create({
+      model: modelName(),
+      temperature: 0.7,
+      messages: [
+        { role: "system", content: args.system },
+        { role: "user", content: args.user },
+      ],
+    });
+    const content = completion.choices[0]?.message?.content;
+    return content ?? "";
   } catch (err) {
-    if (isQuota429(err)) {
-      const retry = parseRetryAfterSeconds(err);
-      if (retry && retry > 0 && retry <= 30) {
-        await sleep(retry * 1000);
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-      }
-      throw new GeminiQuotaError(
-        "Gemini quota exceeded. Please try again shortly or update your API quota/billing.",
-        retry,
-      );
-    }
     throw err;
   }
 }
