@@ -1,5 +1,11 @@
 # NorthQuest
 
+<p>
+  <img src="public/branding/indiaskills-logos.png" alt="NSDC · Skill India · IndiaSkills" height="70" />
+</p>
+
+![IndiaSkills](https://img.shields.io/badge/IndiaSkills-2026-orange?style=flat-square) ![Web Technologies](https://img.shields.io/badge/Web%20Technologies-Team%20Round-blue?style=flat-square) ![Team](https://img.shields.io/badge/Team-Codebreakers-black?style=flat-square)
+
 An AI-powered digital tourism platform for exploring the culture, heritage, and eco-tourism destinations of North India. Built by team Codebreakers during the team round of **IndiaSkills 2026 — Web Technologies**.
 
 NorthQuest surfaces popular destinations and hidden gems, generates personalized day-by-day trip itineraries with AI, and answers travel questions through a floating chat assistant.
